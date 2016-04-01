@@ -1,28 +1,24 @@
-# Maintainer: AwesomeHaircut <jesusbalbastro at gmail com>
+# Maintainer: James An <james@jamesan.ca>
+# Contributor: AwesomeHaircut <jesusbalbastro at gmail com>
 
-pkgname=droidcam
+pkgname=droidcam-dkms
+_pkgname=${pkgname%-dkms}
 pkgver=6.0
 pkgrel=3
-_kver="`uname -r | cut -d"." -f1,2`-ARCH"
 pkgdesc='A tool for using your android device as a wireless/usb webcam'
 arch=('x86_64')
-url='http://www.dev47apps.com/'
+url='http://www.dev47apps.com'
 license=('custom')
-depends=( 'bluez-libs' 'gtk2')
-makedepends=( 'linux-headers' )
-options=('!strip')
+depends=('bluez-libs' 'dkms' 'gtk2')
 optdepends=('v4l-utils: Userspace tools and conversion library for Video 4 Linux'
             'xf86-video-v4l: X.org v4l video driver' )
-install="$pkgname.install"
-
-source=("$pkgname.desktop" )
-
-sha1sums=( 'f85b3f34f98908bd1327df0ea0e650dcbdcb07e9')
-
-## as of 2015-11-11 only x64 is available for 6.0
-[[ "${CARCH}" = "x86_64" ]] && _arch="x64" && sha1sums+=('0c1d6c7b0298e5ec935aa1a93a80529d8a02c9a9')
-
-source+=("http://files.dev47apps.net/600/droidcam-v4l2-${_arch}.tar.gz")
+provides=("$_pkgname=$pkgver")
+conflicts=("$_pkgname")
+options=()
+install=
+source=("$_pkgname.desktop"
+        "http://files.dev47apps.net/600/$_pkgname-v4l2-x64.tar.gz")
+md5sums=()
 
 package() {
   # Install droidcam binary file
