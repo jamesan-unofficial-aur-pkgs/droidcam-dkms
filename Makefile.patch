@@ -1,0 +1,24 @@
+diff --git a/v4l2loopback/Makefile b/v4l2loopback/Makefile
+index d30e2de..9286c03 100644
+--- a/v4l2loopback/Makefile
++++ b/v4l2loopback/Makefile
+@@ -1,16 +1,11 @@
+ obj-m := v4l2loopback-dc.o
++KVERSION := $(shell uname -r)
+
+ all:
+-	make -C /lib/modules/`uname -r`/build M=`pwd`
++	$(MAKE) -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
+
+ test:
+ 	gcc test.c -o test
+
+ clean:
+-	make -C /lib/modules/`uname -r`/build M=`pwd` clean
+-
+-insmod:
+-	sudo insmod v4l2loopback-dc.ko width=320 height=240
+-
+-rmmod:
+-	sudo rmmod v4l2loopback-dc.ko
++	$(MAKE) -C /lib/modules/$(KVERSION)/build M=$(PWD) clean

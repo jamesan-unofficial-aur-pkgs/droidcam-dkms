@@ -15,22 +15,46 @@ optdepends=('v4l-utils: Userspace tools and conversion library for Video 4 Linux
 provides=("$_pkgname=$pkgver")
 conflicts=("$_pkgname")
 options=()
-install=
+install="$_pkgname.install"
 source=("$_pkgname.desktop"
+        dkms.conf
+        Makefile.patch
         "http://files.dev47apps.net/600/$_pkgname-v4l2-x64.tar.gz")
-md5sums=()
+md5sums=('199d8f3dbc6697f06350b00de99f2274'
+         'e01bbf653b83b6b231391c3d99a54d68'
+         '6f2e74a8921ffa0eaef2759fdf44f595'
+         '8a81b4f9b61ce98a34d8a916e7be9d5e')
+
+build() {
+ patch -p1 -i Makefile.patch
+}
 
 package() {
   # Install droidcam binary file
-  cd $pkgdir
   mkdir -p "$pkgdir"/usr/bin
-  install -m755 "$srcdir"/${pkgname} "$pkgdir"/usr/bin/${pkgname}
-  install -m755 "$srcdir"/${pkgname}-cli "$pkgdir"/usr/bin/${pkgname}-cli
+  install -m755 $_pkgname "$pkgdir"/usr/bin/$_pkgname
+  install -m755 $_pkgname-cli "$pkgdir"/usr/bin/$_pkgname-cli
 
   # Install the desktop icon and ".desktop" files
   install -dm0755 "${pkgdir}/usr/share/"{applications,pixmaps}
-  install -m0644 "${srcdir}/icon2.png" "${pkgdir}/usr/share/pixmaps/${pkgname}.png"
-  install -m0644 "${srcdir}/${pkgname}.desktop" "${pkgdir}/usr/share/applications/${pkgname}.desktop"
+  install -m0644 icon2.png "${pkgdir}/usr/share/pixmaps/$_pkgname.png"
+  install -m0644 "$_pkgname.desktop" "${pkgdir}/usr/share/applications/$_pkgname.desktop"
+
+  # Install
+  msg2 "Starting make install..."
+  install -Dm644 v4l2loopback/v4l2loopback-dc.c "${pkgdir}"/usr/src/v4l2loopback-0.6.1/v4l2loopback-dc.c
+
+  # Copy dkms.conf
+  install -Dm644 dkms.conf "${pkgdir}"/usr/src/v4l2loopback-0.6.1/dkms.conf
+
+  # Set name and version
+  #~ sed -e "s/@_PKGBASE@/v4l2loopback/" \
+      #~ -e "s/@PKGVER@/0.6.1/" \
+      #~ -i "${pkgdir}"/usr/src/v4l2loopback-0.6.1/dkms.conf
+
+  # Copy sources (including Makefile)
+  install -Dm644 v4l2loopback/Makefile "${pkgdir}"/usr/src/v4l2loopback-0.6.1/Makefile
+  install -Dm644 v4l2loopback/v4l2loopback-dc.c "${pkgdir}"/usr/src/v4l2loopback-0.6.1/v4l2loopback-dc.c
 
   mkdir -p "$pkgdir"/usr/lib/modules-load.d/
   printf "videodev\nv4l2loopback\nv4l2loopback_dc" \
@@ -41,14 +65,7 @@ package() {
          > "$pkgdir"/etc/modprobe.d/droidcam.conf
 
   # Install doc
-  install -dm0755 "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -dm0755 "${pkgdir}/usr/share/licenses/$pkgname"
   install -m0644 "${srcdir}/README" "${pkgdir}/usr/share/licenses/$pkgname/README"
-
-  # Install modules
-  cd $srcdir/v4l2loopback
-  sed -i -e "s,vdev->current_norm,//vdev->current_norm,g" "$srcdir"/v4l2loopback/*.c
-  make
-  _extramodules="extramodules-$(uname -r | cut -f-2 -d'.')-$(uname -r|sed -e 's/.*-//g')"
-  MODPATH="${pkgdir}/usr/lib/modules/${_extramodules}/"
-  install -Dm644 v4l2loopback-dc.ko "$MODPATH/v4l2loopback_dc.ko"
 }
+
